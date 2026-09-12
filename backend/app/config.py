@@ -62,6 +62,13 @@ class Settings(BaseSettings):
     WEATHER_API_KEY: str = ""
     WEATHER_API_QUERY: str = "11.60,76.04"  # Kalpetta / Wayanad (lat,lng)
 
+    # Optional OpenAI-compatible service. These values are consumed only by the
+    # backend; a missing key intentionally selects the local deterministic mode.
+    AI_PROVIDER: str = "local"
+    AI_API_KEY: str = ""
+    AI_MODEL: str = "gpt-4o-mini"
+    AI_BASE_URL: str = "https://api.openai.com/v1"
+
     # Automatic refresh (seconds): external-fetch TTL on the backend AND the
     # cadence advertised to the frontend polling loop. One external call per window.
     LIVE_REFRESH_INTERVAL_SECONDS: int = 300

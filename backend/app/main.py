@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import engine, Base
-from app.routes import dashboard, settlements, sites, scenarios, reports, model, live
+from app.routes import dashboard, settlements, sites, scenarios, reports, model, live, platform
 
 # Ensure DB tables exist
 Base.metadata.create_all(bind=engine)
@@ -38,6 +38,7 @@ app.include_router(scenarios.router)
 app.include_router(reports.router)
 app.include_router(model.router)
 app.include_router(live.router)
+app.include_router(platform.router)
 
 
 @app.get("/")

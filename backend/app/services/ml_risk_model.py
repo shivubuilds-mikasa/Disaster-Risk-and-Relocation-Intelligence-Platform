@@ -11,7 +11,7 @@ Model pipeline:
      GSI regolith surveys, ISRO vegetation indices).
   2. Train Logistic Regression (baseline) and Random Forest (primary) classifiers.
   3. Evaluate with stratified 5-fold cross-validation and hold-out test set.
-  4. Serve calibrated probability predictions with feature importance attribution.
+  4. Serve uncalibrated model scores with feature importance attribution.
 
 Design choices:
   - Scikit-learn Random Forest (100 estimators, balanced class weights) chosen
@@ -53,8 +53,8 @@ FEATURE_NAMES: List[str] = [
 ]
 
 FEATURE_DESCRIPTIONS: Dict[str, str] = {
-    "rainfall_24h_mm": "24-hour accumulated rainfall (mm) — IMD AWS Station",
-    "rainfall_72h_mm": "72-hour accumulated rainfall (mm) — IMD AWS Station",
+    "rainfall_24h_mm": "Synthetic 24-hour accumulated rainfall input (mm)",
+    "rainfall_72h_mm": "Synthetic 72-hour accumulated rainfall input (mm)",
     "slope_degrees": "Terrain slope angle (degrees) — SRTM 30m DEM",
     "elevation_m": "Elevation above MSL (meters) — SRTM 30m DEM",
     "distance_to_drainage_m": "Distance to nearest stream channel (meters) — Survey of India",
@@ -79,9 +79,9 @@ DATA_PROVENANCE = {
 def _generate_wayanad_training_data(n_samples: int = 500, random_state: int = 42) -> Tuple[np.ndarray, np.ndarray]:
     """
     Generate statistically representative synthetic training data modeled after
-    documented Wayanad geomorphological parameters.
+    plausible Wayanad-like geomorphological parameter ranges.
 
-    The parameter distributions are calibrated to match published ranges from:
+    The synthetic parameter distributions are illustrative ranges inspired by:
     - IMD Meppadi AWS rainfall records (2019-2024)
     - GSI Kerala Landslide Susceptibility Mapping Programme
     - KSDMA Post-Disaster Technical Assessment Report (Aug 2024)
@@ -228,7 +228,7 @@ def _get_trained_models() -> Dict[str, Any]:
             "test_samples": len(X_test),
             "features": len(FEATURE_NAMES),
             "positive_ratio": round(float(y.mean()), 2),
-            "data_generation": "Statistically representative synthetic data modeled after documented Wayanad geomorphological parameters",
+            "data_generation": "Deterministic synthetic demonstration data using Wayanad-like parameter ranges",
         },
         "model_card": {
             "model_name": "Wayanad Landslide Susceptibility Classifier",
@@ -236,7 +236,7 @@ def _get_trained_models() -> Dict[str, Any]:
             "version": "2.0.0-R2",
             "purpose": "Augment rule-based KSDMA hazard assessment with data-driven landslide susceptibility probabilities",
             "limitations": [
-                "Trained on synthetic data calibrated to published Wayanad parameters — not actual field-collected sensor data",
+                "Trained solely on synthetic demonstration data, not field-collected or field-validated observations",
                 "500-sample dataset suitable for prototype demonstration; production deployment requires 2000+ field-verified samples",
                 "Does not incorporate temporal dynamics (antecedent soil moisture time series)",
                 "Spatial autocorrelation not modeled — each sample treated as independent",
@@ -277,7 +277,8 @@ def predict_landslide_susceptibility(features: Dict[str, float]) -> Dict[str, An
 
     X_scaled = scaler.transform(feature_vector)
 
-    # Calibrated probability
+    # This is an uncalibrated classifier probability; it is a model score, not a
+    # field-validated likelihood.
     proba = float(rf_model.predict_proba(X_scaled)[0][1])
     susceptibility_score = round(proba * 100.0, 1)
 
@@ -347,7 +348,7 @@ def assess_data_quality(settlement_dict: Dict[str, Any]) -> Dict[str, Any]:
 
     if completeness >= 0.8:
         quality = "HIGH"
-        quality_note = "All primary risk indicators available from verified agency sources (GSI, IMD, KSDMA)"
+        quality_note = "All primary synthetic demonstration indicators are populated; this is not an agency-data quality certification"
     elif completeness >= 0.6:
         quality = "MEDIUM"
         quality_note = "Partial indicator coverage; some features estimated from proxy data"
